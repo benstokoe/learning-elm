@@ -1,25 +1,50 @@
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
-import Signal exposing (Mailbox)
+import Signal exposing (..)
+import String exposing (..)
+import StartApp.Simple as StartApp
 
-view : Signal.Address String -> String -> Html
-view address message =
+main =
+  StartApp.start { model = emptyModel, update = update, view = view }
+
+-- MODEL
+
+type alias Model = { name : String }
+
+emptyModel : Model
+emptyModel =
+  Model ""
+
+-- ACTIONS
+
+type Action
+  = Name String
+
+update : Action -> Model -> Model
+update action model =
+  case action of
+    Name name ->
+      { model | name = name }
+
+-- VIEW
+
+view : Address Action -> Model -> Html
+view address model =
   div []
   [ input
-    [ type' "string"
+    [ type' "text"
     , placeholder "What is your name?"
     , name "name"
-    , on "input" targetValue (\v -> Signal.message address v)
+    , on "input" targetValue (\name -> Signal.message address (Name name))
     ]
     [],
-    p [] [ text ("Your name is: " ++ message) ]
+    div [] [ nameMessage (toString model.name) ]
   ]
 
-inbox : Mailbox String
-inbox =
-  Signal.mailbox ""
-
-main : Signal Html
-main =
-  Signal.map (view inbox.address) inbox.signal
+nameMessage : String -> Html
+nameMessage name=
+  if (length name) == 2 then
+    p [] [ text "Please enter your name" ]
+  else 
+    p [] [ text ("Your name is: " ++ name) ]
